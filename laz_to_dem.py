@@ -1,16 +1,41 @@
-# This script is affiliated with the WhiteboxTools Geospatial analysis library 
-# Authors: Anthony Francioni, Carys Owens, and John Lindsay
-# Created: 01/07/2020
-# Adapted by William Lidberg to process swedish LiDAR data
-# License: MIT
-
 import os
+import geopandas as gpd
+import pandas as pd
+import shutil
+from geopandas.tools import sjoin
 import sys
 sys.path.insert(1, 'C:/WhiteboxTools') #
 wbt = WhiteboxTools()
 #from wbt.whitebox_tools import WhiteboxTools # module call to WhiteboxTools... for more information see https://jblindsay.github.io/wbt_book/python_scripting/using_whitebox_tools.html)
 from whitebox_tools import WhiteboxTools
+# read lidar tile index to geopnadas dataframe
 
+lidar_tiles_index = gpd.read_file('E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp')
+path_to_block_metadata = 'E:/William/laserdataskog/20D001/metadata/'
+json_list = []
+for tile in os.listdir(path_to_block_metadata):
+    if tile.endswith('.json'):
+        name = path_to_block_metadata + tile
+        tile_json = gpd.read_file(name)
+        json_list.append(tile_json)
+# merge all json polygons to a geopandas dataframe        
+block_extent = gpd.GeoDataFrame(pd.concat(json_list, ignore_index=True), crs=json_list[0].crs)
+# intersecct lidar tiles with block extent with one tile overlap
+intersect = gpd.sjoin(lidar_tiles_index, block_extent, how='inner', op='intersects')
+# get uniqe names
+uniqe_names = intersect['Indexruta'].unique()
+
+
+path_to_downloaded_data = 'E:/William/laserdataskog/pooled/'
+path_to_working_dir = 'E:/William/laserdataskog/workdir/'
+names_relevant_tiles = []
+for name in os.listdir(path_to_downloaded_data):
+    if name.endswith('.laz') and os.path.basename(name[7:20]) in uniqe_names:
+        downladed_tile = path_to_downloaded_data + name
+        copied_tile = path_to_working_dir + name
+        shutil.copy(downladed_tile, copied_tile)
+        
+        
 # Function to gather the file names of TIF files and puts them in a list
 def find_tif_files(input_directory): # finds TIF files in an input directory
     files = os.listdir(input_directory)
@@ -28,9 +53,7 @@ def main():
     wbt = WhiteboxTools()
     wbt.set_verbose_mode(False) # Sets verbose mode. If verbose mode is False, tools will not print output messages
     #wbt.set_compress_rasters(True) # Compressed TIF file format based on the DEFALTE algorithm
-    in_directory = "E:/LAZ/ExempelBlock/19A002/" # Input file directory; change to match your environment
-    output_dir = "E:/LAZ/ExempelBlock/19A002_Whitebox/" # Output file directory; change to match your environment
-
+    in_directory = 'E:/William/laserdataskog/workdir/' # Input file directory; change to match your environment
 
     wbt.set_working_dir(in_directory)
     wbt.lidar_tin_gridding(parameter="elevation", 
