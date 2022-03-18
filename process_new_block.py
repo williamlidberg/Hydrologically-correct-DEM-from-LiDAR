@@ -17,7 +17,13 @@ parser = argparse.ArgumentParser(description = 'Converts laz tiles to DEM tiles 
 #Example on how to run
 #python E:/William/laserdataskog/process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/William/laserdataskog/20D001/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/laserdataskog/dem_dir/
 
+
 def copy_tiles(tile_index, block_dir, pooled_laz_dir, copy_laz_dir):
+    """
+    looks trough the metadata directory for json files and their extent.
+    The extent of all json files are then intersected with the lidar tile index to extract names
+    of lidar tiles. Lidar tiles that intersect and soround the json extents are copied to a new directory.
+    """
     lidar_tiles_index = gpd.read_file(tile_index)
     path_to_block_metadata = block_dir + 'metadata/'
     json_list = []
@@ -41,7 +47,11 @@ def copy_tiles(tile_index, block_dir, pooled_laz_dir, copy_laz_dir):
             copied_tile = path_to_working_dir + name
             shutil.copy(downladed_tile, copied_tile)
         
-def laz_to_dem(copy_laz_dir): 
+
+def laz_to_dem(copy_laz_dir):
+    """
+    converts all laz tiles in a directory to a digital elevation raster.
+    """  
     wbt.set_verbose_mode(True)
     wbt.set_working_dir(copy_laz_dir)
     wbt.lidar_tin_gridding(parameter="elevation", 
@@ -50,23 +60,30 @@ def laz_to_dem(copy_laz_dir):
     exclude_cls= "0,1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18", # Example of classified points to be excluded from analysis i.e. class 9 is water.
     minz=None,
     maxz=None,
-    max_triangle_edge_length=1000.0
+    max_triangle_edge_length=50
     )
     print("Completed TIN interpolation \n")
 
-def copy_completed_dems(block_dir, copy_laz_dir, dem_dir):
+
+def move_completed_dems(block_dir, copy_laz_dir, dem_dir):
+    """
+    Parse names of the original tiles that make up a block and copies them to a new location.
+    The boarder tiles used to create the DEM tiles are not copied.
+    """
     for tile in os.listdir(block_dir):
         if tile.endswith('.laz'):
             dem = copy_laz_dir + tile.replace('.laz', '.tif')
             copied_dem = dem_dir + tile.replace('.laz', '.tif')
-            shutil.copy(dem, copied_dem)
+            shutil.move(dem, copied_dem)
+
 
 def main(tile_index, block_dir, pooled_laz_dir, copy_laz_dir, dem_dir):
     copy_tiles(tile_index, block_dir, pooled_laz_dir, copy_laz_dir)
     laz_to_dem(copy_laz_dir)
-    copy_completed_dems(block_dir, copy_laz_dir, dem_dir)
+    move_completed_dems(block_dir, copy_laz_dir, dem_dir)
     print("--- %s seconds ---" % (time.time() - start_time))
-    
+
+
 if __name__== '__main__':
     parser = argparse.ArgumentParser(
         description='Select the lidar tiles which contains training data',
