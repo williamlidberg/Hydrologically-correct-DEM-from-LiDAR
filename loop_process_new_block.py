@@ -7,7 +7,9 @@ from geopandas.tools import sjoin
 import sys
 import time
 import re
-sys.path.insert(1, 'C:/WhiteboxTools') #
+#import whitebox
+#wbt = whitebox.WhiteboxTools()
+sys.path.insert(1, 'E:/William/WBT') #
 #from wbt.whitebox_tools import WhiteboxTools # module call to WhiteboxTools... for more information see https://jblindsay.github.io/wbt_book/python_scripting/using_whitebox_tools.html)
 from whitebox_tools import WhiteboxTools
 wbt = WhiteboxTools()
@@ -41,6 +43,7 @@ def copy_tiles(tile_index, block_dir, pooled_laz_dir, copy_laz_dir):
     intersect = gpd.sjoin(lidar_tiles_index, block_extent, how='inner', op='intersects')
     # get uniqe names
     uniqe_names = intersect['Indexruta'].unique()
+    print(len(uniqe_names), 'tiles intersected the block')
     path_to_downloaded_data = pooled_laz_dir
     path_to_working_dir = copy_laz_dir
     names_relevant_tiles = []
@@ -68,6 +71,7 @@ def laz_to_dem(copy_laz_dir):
     print("Completed TIN interpolation \n")
 
 
+
 def move_completed_dems(block_dir, copy_laz_dir, dem_dir):
     """
     Parse names of the original tiles that make up a block and copies them to a new location.
@@ -77,7 +81,16 @@ def move_completed_dems(block_dir, copy_laz_dir, dem_dir):
         if tile.endswith('.laz'):
             dem = copy_laz_dir + tile.replace('.laz', '.tif')
             copied_dem = dem_dir + tile.replace('.laz', '.tif')
-            shutil.move(dem, copied_dem)
+            try:
+                shutil.move(dem, copied_dem)
+            except:
+                print('failed to move', dem)
+
+def clean_temp_laz(copy_laz_dir):
+    for root, dir, fs in os.walk(copy_laz_dir):
+        for f in fs:
+            if f.endswith('.laz'):
+                os.remove(os.path.join(root, f))
 
 
 def main(tile_index, root_dir, pooled_laz_dir, copy_laz_dir, dem_dir):
@@ -85,9 +98,15 @@ def main(tile_index, root_dir, pooled_laz_dir, copy_laz_dir, dem_dir):
         for subdirectory in subdirectories:
             if  re.match(r'^[0-9]{2}[A-Z][0-9]{3}$', subdirectory):
                 block_dir = os.path.join(root,subdirectory + '/')
+                print('Processing block', block_dir)
                 copy_tiles(tile_index, block_dir, pooled_laz_dir, copy_laz_dir)
+                print('copied laz files to work dir')
                 laz_to_dem(copy_laz_dir)
+                print('converted laz files to dem files')
                 move_completed_dems(block_dir, copy_laz_dir, dem_dir)
+                print('moved finished dem files to dem directory')
+                clean_temp_laz(copy_laz_dir)
+                print('cleaned temp dir')
                 print("--- %s seconds ---" % (time.time() - start_time))
 
 
