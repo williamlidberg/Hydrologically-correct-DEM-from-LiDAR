@@ -4,6 +4,8 @@ The raw LiDAR data was downloaded from the Swedish mapping, cadastral and land r
 
 Whitebox tools uses data from nearby tiles but in order for this to work all tiles need to be stored in the same directory. The raw data is stored in  multiple subdirectories as .laz files. Use the script pool_laz_files.py to copy all tiles in the same directory.
 ## Pool laz files
+# With docker container:
+docker run -it  --mount type=bind,source=/mnt/national_datasets/laserdataskog/,target=/data --mount type=bind,source=/mnt/ramdisk/,target=/temp abisko
 python3 script pool_laz_files.py 
 
 once all data is pooled the script loop_process_new_block.py can be used to create DEM tiles without edgeeffects. This script uses the json files in the metadata directory of each block and intersect the block extent with a lidar tile index file. All laz files that intersect that extent gets copied to a new directory. This includes neighbouring tiles. DEM raster tiles are then created from the copied laz tiles but only tiles that are inside the block gets copied to the final output directory. This enables looping over lidar blocks and creating a seamless dem.  
