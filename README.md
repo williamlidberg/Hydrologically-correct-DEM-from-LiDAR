@@ -14,13 +14,16 @@ once all data is pooled the script loop_process_new_block.py can be used to crea
 
 
 ## Select and copy relevant laztiles to new directory
-python E:/William/laserdataskog/Select_lidar_tiles.py
+python3 E:/William/laserdataskog/pool_laz_files.py
 
-# Process all existing blocks
+# Process all existing blocks SFA
 python E:/William/laserdataskog/loop_process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/LAZ/original/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/laserdataskog/dem_dir/
 
+# Process all existing blocks SLU
+python3 /code/laserdataskog/loop_process_new_block.py /code/data/Indexrutor_2_5km_Sverige.shp /data/laserdataskog/original/ /data/laserdataskog/pooled/ /temp/ /data/laserdataskog/dem05m/
+
 # process new block
-python E:/William/laserdataskog/process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/William/newblock/20C045/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/laserdataskog/dem_dir/
+python E:/William/laserdataskog/loop_process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/William/newblock/20C045/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/laserdataskog/dem_dir/
 
 
 python E:/William/laserdataskog/process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/William/newblock/20C045/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/newblockoutput/
