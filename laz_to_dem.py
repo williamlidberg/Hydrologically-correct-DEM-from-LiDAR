@@ -4,10 +4,14 @@ import pandas as pd
 import shutil
 from geopandas.tools import sjoin
 import sys
-sys.path.insert(1, 'C:/WhiteboxTools') #
-wbt = WhiteboxTools()
-#from wbt.whitebox_tools import WhiteboxTools # module call to WhiteboxTools... for more information see https://jblindsay.github.io/wbt_book/python_scripting/using_whitebox_tools.html)
-from whitebox_tools import WhiteboxTools
+try:
+    sys.path.insert(1, 'E:/William/WBT') #
+    from whitebox_tools import WhiteboxTools
+    wbt = WhiteboxTools()
+except: 
+    print('failed to import local whitebox, using pip instead')
+else:
+    import whitebox as wbt
 # read lidar tile index to geopnadas dataframe
 
 lidar_tiles_index = gpd.read_file('E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp')

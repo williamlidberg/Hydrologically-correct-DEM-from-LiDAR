@@ -7,16 +7,21 @@ from geopandas.tools import sjoin
 import sys
 import time
 import re
-#import whitebox
-#wbt = whitebox.WhiteboxTools()
-sys.path.insert(1, 'E:/William/WBT') #
+import whitebox
+wbt = whitebox.WhiteboxTools()
+
+
+
 #from wbt.whitebox_tools import WhiteboxTools # module call to WhiteboxTools... for more information see https://jblindsay.github.io/wbt_book/python_scripting/using_whitebox_tools.html)
-from whitebox_tools import WhiteboxTools
-wbt = WhiteboxTools()
+#sys.path.insert(1, 'data/WhiteboxTools_win_amd64/WBT') #
+#sys.path.insert(1, 'Y:/national_datasets/WhiteboxTools_win_amd64/WBT') #
+#from whitebox_tools import WhiteboxTools
+#wbt = WhiteboxTools()
+
 parser = argparse.ArgumentParser(description = 'Converts laz tiles to DEM tiles without edge effects')
 
 start_time = time.time()
-sys.path.insert(1, 'C:/WhiteboxTools') 
+
 
 #Example on how to run
 #python E:/William/laserdataskog/loop_process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/LAZ/original/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/laserdataskog/dem_dir/
@@ -63,7 +68,7 @@ def laz_to_dem(copy_laz_dir):
     wbt.lidar_tin_gridding(parameter="elevation", 
     returns="last", # A DEM or DTM is usually obtained from the "last" returns, a DSM uses "first" returns (or better, use the lidar_digital_surface_model tool)
     resolution=0.5, # This is the spatial resolution of the output raster in meters and should depend on application needs and point density.
-    exclude_cls= "0,1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18", # Example of classified points to be excluded from analysis i.e. class 9 is water.
+    exclude_cls= "0,1,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18", # Example of classified points to be excluded from analysis i.e. class 9 is water.
     minz=None,
     maxz=None,
     max_triangle_edge_length=50
@@ -94,6 +99,8 @@ def clean_temp_laz(copy_laz_dir):
 
 
 def main(tile_index, root_dir, pooled_laz_dir, copy_laz_dir, dem_dir):
+    wbt.set_verbose_mode(True)
+    wbt.set_working_dir(copy_laz_dir)
     for root, subdirectories, files in os.walk(root_dir):
         for subdirectory in subdirectories:
             if  re.match(r'^[0-9]{2}[A-Z][0-9]{3}$', subdirectory):

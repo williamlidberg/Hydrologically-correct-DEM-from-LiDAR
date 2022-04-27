@@ -5,22 +5,29 @@ The raw LiDAR data was downloaded from the Swedish mapping, cadastral and land r
 Whitebox tools uses data from nearby tiles but in order for this to work all tiles need to be stored in the same directory. The raw data is stored in  multiple subdirectories as .laz files. Use the script pool_laz_files.py to copy all tiles in the same directory.
 ## Pool laz files
 # With docker container:
+docker build -t dem .
 **Start container**
-docker run -it  --mount type=bind,source=/mnt/Extension_100TB/national_datasets/laserdataskog/,target=/data --mount type=bind,source=/mnt/Extension_100TB//William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code --mount type=bind,source=/mnt/ramdisk/,target=/temp abisko
+docker run -it  --mount type=bind,source=/mnt/Extension_100TB/national_datasets/laserdataskog/,target=/data --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code dem:latest
 
+**Select and copy relevant laztiles to new directory**
 python3 /code/pool_laz_files.py 
 
 once all data is pooled the script loop_process_new_block.py can be used to create DEM tiles without edgeeffects. This script uses the json files in the metadata directory of each block and intersect the block extent with a lidar tile index file. All laz files that intersect that extent gets copied to a new directory. This includes neighbouring tiles. DEM raster tiles are then created from the copied laz tiles but only tiles that are inside the block gets copied to the final output directory. This enables looping over lidar blocks and creating a seamless dem.  
 
 
-## Select and copy relevant laztiles to new directory
-python3 E:/William/laserdataskog/pool_laz_files.py
-
 # Process all existing blocks SFA
 python E:/William/laserdataskog/loop_process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/LAZ/original/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/laserdataskog/dem_dir/
 
-# Process all existing blocks SLU
-python3 /code/laserdataskog/loop_process_new_block.py /code/data/Indexrutor_2_5km_Sverige.shp /data/laserdataskog/original/ /data/laserdataskog/pooled/ /temp/ /data/laserdataskog/dem05m/
+
+
+# Process all existing blocks docker - SLU
+python3 /code/loop_process_new_block.py /code/data/Indexrutor_2_5km_Sverige.shp /data/original/ /data/pooled_laz_files/ /data/workdir/ /data/dem05m/
+
+
+
+
+# Process all existing blocks SLU anaconda
+python Y:/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/loop_process_new_block.py Y:/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/data/Indexrutor_2_5km_Sverige.shp Y:/national_datasets/laserdataskog/original/ Y:/national_datasets/laserdataskog/pooled_laz_files/ Y:/national_datasets/laserdataskog/workdir/ /Y:/national_datasets/laserdataskog/dem05m/
 
 # process new block
 python E:/William/laserdataskog/loop_process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/William/newblock/20C045/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/laserdataskog/dem_dir/
