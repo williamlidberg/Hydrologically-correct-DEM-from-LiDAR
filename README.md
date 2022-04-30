@@ -6,6 +6,7 @@ Whitebox tools uses data from nearby tiles but in order for this to work all til
 ## Pool laz files
 # With docker container:
 docker build -t dem .
+
 **Start container**
 docker run -it  --mount type=bind,source=/mnt/Extension_100TB/national_datasets/laserdataskog/,target=/data --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code dem:latest
 
