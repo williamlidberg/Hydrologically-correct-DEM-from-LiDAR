@@ -32,11 +32,12 @@ Stream and road networks were extracted from the swedish property map.
 How to make a hydrollogically compatible DEM from a national LiDAR scan
 The raw LiDAR data was downloaded from the Swedish mapping, cadastral and land registration authority (Lantmäteriet): https://www.lantmateriet.se/en/maps-and-geographic-information/geodataprodukter/produktlista/laserdata-nedladdning-skog/
 
-Whitebox tools uses data from nearby tiles but in order for this to work all tiles need to be stored in the same directory. The raw data is stored in  multiple subdirectories as .laz files. Use the script pool_laz_files.py to copy all tiles in the same directory.
-## Pool laz files
+
 # With docker container:
 docker build -t dem .
+
 **Start container**
+
 docker run -it  --mount type=bind,source=/mnt/Extension_100TB/national_datasets/laserdataskog/,target=/data --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code dem:latest
 
 **Create LiDAR Tile Footprint**\
