@@ -7,17 +7,21 @@ from geopandas.tools import sjoin
 import sys
 import time
 import re
-import whitebox
-wbt = whitebox.WhiteboxTools()
+#import whitebox
+#wbt = whitebox.WhiteboxTools()
 
 
 
 #from wbt.whitebox_tools import WhiteboxTools # module call to WhiteboxTools... for more information see https://jblindsay.github.io/wbt_book/python_scripting/using_whitebox_tools.html)
 #sys.path.insert(1, 'data/WhiteboxTools_win_amd64/WBT') #
+sys.path.insert(1, 'Y:/William/Skogsstyrelsen/WhiteboxTools/WhiteboxTools')
 #sys.path.insert(1, 'Y:/national_datasets/WhiteboxTools_win_amd64/WBT') #
-#from whitebox_tools import WhiteboxTools
-#wbt = WhiteboxTools()
+#from WBT.whitebox_tools import WhiteboxTools
+from whitebox_tools import WhiteboxTools
+wbt = WhiteboxTools()
 
+#wbt.set_verbose_mode(True)
+#wbt.set_working_dir('/data/workdir/')
 parser = argparse.ArgumentParser(description = 'Converts laz tiles to DEM tiles without edge effects')
 
 start_time = time.time()
@@ -57,13 +61,14 @@ def copy_tiles(tile_index, block_dir, pooled_laz_dir, copy_laz_dir):
             downladed_tile = path_to_downloaded_data + name
             copied_tile = path_to_working_dir + name
             shutil.copy(downladed_tile, copied_tile)
+    print('copied laz files')
 
 
 def laz_to_dem(copy_laz_dir):
     """
     converts all laz tiles in a directory to a digital elevation raster.
     """ 
-    wbt.set_verbose_mode(True)
+    #wbt.set_verbose_mode(True)
     wbt.set_working_dir(copy_laz_dir)
     wbt.lidar_tin_gridding(parameter="elevation", 
     returns="last", # A DEM or DTM is usually obtained from the "last" returns, a DSM uses "first" returns (or better, use the lidar_digital_surface_model tool)
@@ -88,18 +93,19 @@ def move_completed_dems(block_dir, copy_laz_dir, dem_dir):
             copied_dem = dem_dir + tile.replace('.laz', '.tif')
             try:
                 shutil.move(dem, copied_dem)
+                print('moved dem files')
             except:
                 print('failed to move', dem)
 
 def clean_temp_laz(copy_laz_dir):
     for root, dir, fs in os.walk(copy_laz_dir):
         for f in fs:
-            if f.endswith('.laz'):
+            if f.endswith('.laz') or f.endswith('.tif'):
                 os.remove(os.path.join(root, f))
-
+    print('cleaned temp dir')
 
 def main(tile_index, root_dir, pooled_laz_dir, copy_laz_dir, dem_dir):
-    wbt.set_verbose_mode(True)
+    #wbt.set_verbose_mode(True)
     wbt.set_working_dir(copy_laz_dir)
     for root, subdirectories, files in os.walk(root_dir):
         for subdirectory in subdirectories:
@@ -107,13 +113,15 @@ def main(tile_index, root_dir, pooled_laz_dir, copy_laz_dir, dem_dir):
                 block_dir = os.path.join(root,subdirectory + '/')
                 print('Processing block', block_dir)
                 copy_tiles(tile_index, block_dir, pooled_laz_dir, copy_laz_dir)
+                #print('wait for 20 seconds so all files finish copy')
+                #time.sleep(20)
                 print('copied laz files to work dir')
                 laz_to_dem(copy_laz_dir)
                 print('converted laz files to dem files')
                 move_completed_dems(block_dir, copy_laz_dir, dem_dir)
                 print('moved finished dem files to dem directory')
                 clean_temp_laz(copy_laz_dir)
-                print('cleaned temp dir')
+                
                 print("--- %s seconds ---" % (time.time() - start_time))
 
 
