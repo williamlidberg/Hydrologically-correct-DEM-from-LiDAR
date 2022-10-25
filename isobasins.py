@@ -12,7 +12,7 @@ def main(tempdir, dem, size, isobasins):
         output = tempdir + 'breached.tif', 
         max_depth=None, 
         max_length=None, 
-        flat_increment=None, 
+        flat_increment=0.001, 
         fill_pits=True
     )
 
