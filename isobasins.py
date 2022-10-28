@@ -7,26 +7,26 @@ wbt = whitebox.WhiteboxTools()
 
 
 def main(tempdir, dem, coastline, size, isobasins):
-    # wbt.breach_depressions(
-    #     dem, 
-    #     output = tempdir + 'breached.tif', 
-    #     max_depth=None, 
-    #     max_length=None, 
-    #     flat_increment=0.001, 
-    #     fill_pits=True
-    # )
+    wbt.breach_depressions(
+        dem, 
+        output = tempdir + 'breached.tif', 
+        max_depth=None, 
+        max_length=None, 
+        flat_increment=0.001, 
+        fill_pits=True
+    )
 
-    # wbt.isobasins(
-    #     dem = tempdir + 'breached.tif', 
-    #     output = tempdir + 'isobasins.tif', 
-    #     size = size, 
-    #     connections=True
-    # )
+    wbt.isobasins(
+        dem = tempdir + 'breached.tif', 
+        output = tempdir + 'isobasins.tif', 
+        size = size, 
+        connections=True
+    )
 
-    # wbt.raster_to_vector_polygons(
-    #     i = tempdir + 'isobasins.tif', 
-    #     output = tempdir + 'isobasins.shp'
-    # )
+    wbt.raster_to_vector_polygons(
+        i = tempdir + 'isobasins.tif', 
+        output = tempdir + 'isobasins.shp'
+    )
 
     wbt.erase(
         i = tempdir + 'isobasins.shp', 

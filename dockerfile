@@ -1,12 +1,10 @@
-FROM ubuntu:latest
+FROM osgeo/gdal:latest
 RUN apt-get update
 RUN apt-get update && apt-get install -y python3-pip
 
-COPY . /code
-
-ARG DEBIAN_FRONTEND=noninteractive
-ENV TZ=Europe/Moscow
-RUN apt-get install -y tzdata
+#ARG DEBIAN_FRONTEND=noninteractive
+#ENV TZ=Europe/Moscow
+#RUN apt-get install -y tzdata
 # RUN pip install rasterio
 # RUN pip install tifffile
 RUN pip install whitebox==2.0.3
@@ -14,6 +12,7 @@ RUN pip install whitebox==2.0.3
 RUN pip install rtree
 RUN pip install pygeos
 RUN pip install geopandas
+RUN pip install tqdm
 # RUN pip install splitraster
 
 
