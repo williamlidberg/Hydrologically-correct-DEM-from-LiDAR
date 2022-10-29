@@ -12,20 +12,53 @@ Stream and road networks were extracted from the swedish property map.
     docker build -t dem .
 **Start container**
 
-    docker run -it  --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/national_datasets/Swedish1mDEM_old/,target=/dem --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code --mount type=bind,source=/mnt/ramdisk/,target=/temp dem:latest
+    docker run -it  --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/national_datasets/,target=/national --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code --mount type=bind,source=/mnt/ramdisk/,target=/temp dem:latest
+
+# Prepare data
 
 ## Create isobasins
 40 000 grid cells equals to 100 km<sup>2</sup>
 
-    python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 40000 /data/isobasins/isobasins.shp
+    python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 40000 /data/isobasins/isobasins.shp /data/isobasins/split_isobasins/
 
-    python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 80000 /data/isobasins/isobasins.shp
 
-## Split 1m DEM by the outline of isobasins
 
-    python3 code/utils/split_raster_by_isobasin.py temp/ dem/tilessinglefolder/ dem/mosaic1m.vrt data/isobasins/ data/clipraster
+## Clip input data with isobasins
 
-## Unzip culverts
+
+
+**Clip dem**
+
+    python3 code/split_raster_by_isobasin.py temp/ national/Swedish1mDEM_old/tilessinglefolder/ national/Swedish1mDEM_old/mosaic1m.vrt data/isobasins/split_isobasins/ data/clipraster/ -32768
+
+
+To do:
+**Clip Ditches**
+    python3 code/split_raster_by_isobasin.py temp/ national/ditches/1m/classified/ national/ditches/1m/classified.vrt data/isobasins/split_isobasins/ data/clipditches/ -9999
+
+**Clip Culverts**
+
+**Clip Roads**
+
+**Clip Railroads**
+
+**Clip Streams**
+
+
+# Preprocessing
+
+    python3 code/preprocess.py /temp/ /data/clipraster/ /data/clipditches/ /data/clipculverts/ /data/cliproads/ /data/cliprailroads/ /data/clipstreams/ /data/breachedwatersheds/
+
+
+# Topographical modeling for hydrological features
+
+    python3 code/Flowaccumulation.py /data/breachedwatersheds/ /data/D8pointer/ /data/D8flowaccumulation/
+
+
+
+
+
+**Unzip culverts**
     python3 /code/utils/unzipfiles.py /data/culverts/
 
 
