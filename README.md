@@ -16,11 +16,48 @@ Stream and road networks were extracted from the swedish property map.
 
 # Prepare data
 
+# memory testing
+
+    **breaching worked for 800km2 and used 45 GB RAM**
+    **Breach for 160000km2 used 77 GB RAM. it took 360 min***
+    **DTW 60GB 1h11 min** 
+    **DTW 106GB 2h12 m** 
+    **Clipp**
+   
+   python3 code/temp/memorytest.py national/Swedish1mDEM_old/mosaic1m.vrt /data/isobasins/3200km2/split/watershed_351.shp data/memorytest/dem/watershed_351.tif -32768
+   
+   python3 code/temp/memorytest.py national/Swedish1mDEM_old/mosaic1m.vrt /data/isobasins/1600km2/split/watershed_53.shp data/memorytest/dem/watershed_53.tif -32768
+
+
+    python3 code/temp/memorytest.py national/Swedish1mDEM_old/mosaic1m.vrt /data/isobasins/800km2/watershed_308.shp data/memorytest/dem/watershed_308.tif -32768
+
+    **breach test**
+    python3 code/preprocess.py /temp/ /data/memorytest/dem/ /data/clipditches/ /data/clipculverts/ /data/cliproads/ /data/cliprailroads/ /data/clipstreams/ /data/memorytest/breached/
+
+    **dtw test**
+    python3 /code/temp/dtw.py /data/inspect/ /data/memorytest/dem/ /data/memorytest/breached/ 100000 /data/dtw/
+
+
 ## Create isobasins
-40 000 grid cells equals to 100 km<sup>2</sup>
+80 000 grid cells equals to 200 km<sup>2</sup>
 
     python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 40000 /data/isobasins/isobasins.shp /data/isobasins/split_isobasins/
 
+160 000 grid cells equals to 400 km<sup>2</sup>
+
+    python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 160000 /data/isobasins/400km2/isobasins.shp /data/isobasins/400km2/split
+
+320 000 grid cells equals to 800 km<sup>2</sup>
+
+    python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 320000 /data/isobasins/800km2/isobasins.shp /data/isobasins/800km2/split/
+
+640 000 grid cells equals to 1600 km<sup>2</sup>
+
+    python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 640000 /data/isobasins/1600km2/isobasins.shp /data/isobasins/1600km2/split/
+
+Isobasins between 1 km2 and 2030 km2
+
+python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 640000 /data/isobasins/5km2to2030km2/isobasins.shp /data/isobasins/5km2to2030km2/split/
 
 
 ## Clip input data with isobasins
@@ -34,29 +71,46 @@ Stream and road networks were extracted from the swedish property map.
 
 To do:
 **Clip Ditches**
-    python3 code/split_raster_by_isobasin.py temp/ national/ditches/1m/classified/ national/ditches/1m/classified.vrt data/isobasins/split_isobasins/ data/clipditches/ -9999
+
 
 **Clip Culverts**
 
 **Clip Roads**
 
+    python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/vl_riks.shp /data/clipvector/roads/
+
+
 **Clip Railroads**
 
+    python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/vj_riks.shp /data/clipvector/railroads/
+    
 **Clip Streams**
+
+    python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/vl_riks.shp /data/clipvector/streams/
 
 
 # Preprocessing
 
+The preprocessing is done to create a hydrologically compatible DEM and was done in x stepps. 
+    1. AI detected ditch channels were burned into the DEM using Fillburn from whitebox.
+    2. streams were burned across roads and railroads for a maximum of 50 meters.
+    3. Road
+
     python3 code/preprocess.py /temp/ /data/clipraster/ /data/clipditches/ /data/clipculverts/ /data/cliproads/ /data/cliprailroads/ /data/clipstreams/ /data/breachedwatersheds/
+    # krycklan
+    python3 code/preprocess.py /temp/ /data/krycklan/dem/ /data/clipditches/ /data/clipculverts/ /data/cliproads/ /data/cliprailroads/ /data/clipstreams/ /data/krycklan/breacheddem/
 
-
-# Topographical modeling for hydrological features
+    # Topographical modeling for hydrological features
 
     python3 code/Flowaccumulation.py /data/breachedwatersheds/ /data/D8pointer/ /data/D8flowaccumulation/
 
 
+# test dtw
 
+    python3 /code/temp/dtw.py /data/inspect/ /data/clipraster/ /data/breachedwatersheds/ 100000 /data/dtw/
 
+    # krycklan
+    python3 /code/temp/dtw.py /data/inspect/ /data/krycklan/dem/ /data/krycklan/breacheddem/ 100000 /data/dtw/
 
 **Unzip culverts**
     python3 /code/utils/unzipfiles.py /data/culverts/

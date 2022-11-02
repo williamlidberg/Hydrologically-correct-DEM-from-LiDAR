@@ -22,7 +22,6 @@ def main(tempdir, demdir, culvertdir, ditchdir, roaddir, railroaddir, streamdir,
 
 
 
-
 if __name__== '__main__':
     parser = argparse.ArgumentParser(
         description='Select the lidar tiles which contains training data',

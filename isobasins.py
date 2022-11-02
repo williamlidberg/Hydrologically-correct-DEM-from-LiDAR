@@ -33,8 +33,18 @@ def buffer_basins(input_basin, buffered_basin):
     gdf.to_file(buffered_basin)
 
 def main(tempdir, dem, coastline, size, isobasins, split_isobasins):
+    for i in os.listdir(tempdir):
+        os.remove(tempdir + i)
+    wbt.fill_missing_data(
+        i = dem, 
+        output = tempdir + 'filledmissing.tif', 
+        filter=666, 
+        weight=2.0, 
+        no_edges=True
+    )   
+
     wbt.breach_depressions(
-        dem, 
+        dem = tempdir + 'filledmissing.tif', 
         output = tempdir + 'breached.tif', 
         max_depth=None, 
         max_length=None, 
@@ -65,23 +75,21 @@ def main(tempdir, dem, coastline, size, isobasins, split_isobasins):
     gdf = gpd.read_file(tempdir + 'erasedisobasins.shp')
     gdf['geometry'].to_crs({'init': 'epsg:3006'})
     gdf['poly_area'] = gdf['geometry'].area/ 10**6
-    gdf = gdf.loc[gdf['poly_area'] > 5]
+    gdf = gdf.loc[gdf['poly_area'] > 2]
     gdf.to_file(isobasins)
     
     print('explode isobasin shapefile')
     split_polygon(isobasins, tempdir)
 
     print('buffer isobasins')
+    # A buffer of 0 is applied to correct topological errors.
     pathtoshapefiles = tempdir + '/*.shp'
     listofshapefiles = glob.glob(pathtoshapefiles)
     for basin in tqdm(listofshapefiles):
         bufferedbasin = split_isobasins + os.path.basename(basin)
         buffer_basins(basin, bufferedbasin)
 
-    # clean up temp dir
-    infile = tempdir + 'isobasins.csv'
-    outfile = os.path.dirname(isobasins) + '/isobasins.csv'
-    #shutil.copyfile(infile, outfile)
+
     for i in os.listdir(tempdir):
         os.remove(tempdir + i)
 
