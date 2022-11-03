@@ -1,7 +1,7 @@
 import os
 import argparse
 import geopandas as gpd
-
+from pathlib import Path
 
 
 def main(isobasindir, shapefile, clipped_shapefiledir):

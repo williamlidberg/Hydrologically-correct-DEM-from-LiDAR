@@ -66,14 +66,15 @@ python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden
 
 **Clip dem**
 
-    python3 code/split_raster_by_isobasin.py temp/ national/Swedish1mDEM_old/tilessinglefolder/ national/Swedish1mDEM_old/mosaic1m.vrt data/isobasins/split_isobasins/ data/clipraster/ -32768
+    python3 code/split_raster_by_isobasins.py temp/ /national/Swedish1mDEM_old/tiles/ /national/Swedish1mDEM_old/mosaic1m.vrt data/isobasins/split_isobasins/ data/clipraster/ -32768
 
 
 To do:
 **Clip Ditches**
 
+ python3 code/split_ditches_by_isobasins.py
+ 
 
-**Clip Culverts**
 
 **Clip Roads**
 
@@ -88,7 +89,10 @@ To do:
 
     python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/vl_riks.shp /data/clipvector/streams/
 
+**Clip Culverts**
+    python3 code/split_culvert_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/culverts/ /data/clipvector/culverts/
 
+    
 # Preprocessing
 
 The preprocessing is done to create a hydrologically compatible DEM and was done in x stepps. 

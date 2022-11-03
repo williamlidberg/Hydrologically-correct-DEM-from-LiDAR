@@ -1,25 +1,70 @@
 import os
 import whitebox
+wbt = whitebox.WhiteboxTools()
 import argparse
 import glob
 import geopandas as gpd
 from tqdm import tqdm
-wbt = whitebox.WhiteboxTools()
+
+def burn_culverts(tempdir, dem, culvert, output):
+    wbt.vector_polygons_to_raster(
+        i = culvert, 
+        output = tempdir + dem.replace('.tif', 'culvert_.tif'),
+        field= 'burndepth', 
+        nodata=True, 
+        cell_size=None, 
+        base= dem
+    )
+    wbt.subtract(
+        input1 = dem, 
+        input2 = tempdir + dem.replace('.tif', 'culvert_.tif'), 
+        output = output
+    )
 
 
+
+# not all watersheds have culverts or ditches or roads. compare lists between each?
 
 def main(tempdir, demdir, culvertdir, ditchdir, roaddir, railroaddir, streamdir, breacheddir):
     for watershed in os.listdir(demdir):
         if watershed.endswith('.tif'):
-            wbt.breach_depressions(
-            dem = demdir + watershed, 
-            output = breacheddir + watershed, 
-            max_depth=None, 
-            max_length=None, 
-            flat_increment=None, 
-            fill_pits=True
+
+            # Roads and railroads need to be merged into a single file before burning.
+            roads = roaddir + watershed.replace('.tif', '.shp')
+            railroads = railroaddir + watershed.replace('.tif', '.shp')
+            wbt.merge_vectors(
+                inputs = roads;railroads, 
+                output = tempdir + watershed.replace('.tif', '_merge.shp')
+            )
+            wbt.burn_streams_at_roads(
+                dem = demdir + watershed, 
+                streams = streamdir + watershed.replace('.tif', '.shp'), 
+                roads = tempdir + watershed.replace('.tif', '_merge.shp'), 
+                output = tempdir + watershed.replace('.tif', '_roadburned.tif'), 
+                width=50
+            )            
+            # Burn ditches into DEM
+            wbt.fill_burn(
+                dem = tempdir + watershed.replace('.tif', '_roadburned.tif'), 
+                streams = ditchdir + watershed.replace('.tif', '.shp'), 
+                output = tempdir + watershed.replace('.tif', '_fillburn.tif')
             )
 
+            # Burn culverts into DEM
+            dem = tempdir + watershed.replace('.tif', '_fillburn.tif')
+            culvert = culvertdir + watershed.replace('.tif', '.shp')
+            burned = tempdir + watershed.replace('.tif', '._culvertburn.tif')
+            burn_culverts(tempdir, dem, culvert, burned)
+
+            # Final breaching step
+            wbt.breach_depressions(
+                dem = tempdir + watershed.replace('.tif', '._culvertburn.tif'), 
+                output = breacheddir + watershed, 
+                max_depth=2, 
+                max_length=None, 
+                flat_increment=0.001, 
+                fill_pits=True
+            )
 
 
 if __name__== '__main__':

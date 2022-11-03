@@ -9,7 +9,7 @@ import utils.vrt
 def main(tempdir, tilepath, vrtpath, isobasindir, clipdir, nodata): 
     
     print('build vrt')
-    #utils.vrt.vrt(tilepath, vrtpath)
+    utils.vrt.vrt(tilepath, vrtpath)
 
 
     print('clip raster to isobasin outlines')
