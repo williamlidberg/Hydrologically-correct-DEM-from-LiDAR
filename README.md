@@ -14,6 +14,8 @@ Stream and road networks were extracted from the swedish property map.
 
     docker run -it  --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/national_datasets/,target=/national --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code --mount type=bind,source=/mnt/ramdisk/,target=/temp dem:latest
 
+b5ff4579177:
+
 # Prepare data
 
 # memory testing
@@ -24,57 +26,51 @@ Stream and road networks were extracted from the swedish property map.
     **DTW 106GB 2h12 m** 
     **Clipp**
    
-   python3 code/temp/memorytest.py national/Swedish1mDEM_old/mosaic1m.vrt /data/isobasins/3200km2/split/watershed_351.shp data/memorytest/dem/watershed_351.tif -32768
-   
-   python3 code/temp/memorytest.py national/Swedish1mDEM_old/mosaic1m.vrt /data/isobasins/1600km2/split/watershed_53.shp data/memorytest/dem/watershed_53.tif -32768
-
-
-    python3 code/temp/memorytest.py national/Swedish1mDEM_old/mosaic1m.vrt /data/isobasins/800km2/watershed_308.shp data/memorytest/dem/watershed_308.tif -32768
-
-    **breach test**
-    python3 code/preprocess.py /temp/ /data/memorytest/dem/ /data/clipditches/ /data/clipculverts/ /data/cliproads/ /data/cliprailroads/ /data/clipstreams/ /data/memorytest/breached/
-
-    **dtw test**
-    python3 /code/temp/dtw.py /data/inspect/ /data/memorytest/dem/ /data/memorytest/breached/ 100000 /data/dtw/
 
 
 ## Create isobasins
-80 000 grid cells equals to 200 km<sup>2</sup>
 
-    python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 40000 /data/isobasins/isobasins.shp /data/isobasins/split_isobasins/
-
-160 000 grid cells equals to 400 km<sup>2</sup>
-
-    python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 160000 /data/isobasins/400km2/isobasins.shp /data/isobasins/400km2/split
-
-320 000 grid cells equals to 800 km<sup>2</sup>
-
-    python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 320000 /data/isobasins/800km2/isobasins.shp /data/isobasins/800km2/split/
-
-640 000 grid cells equals to 1600 km<sup>2</sup>
-
-    python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 640000 /data/isobasins/1600km2/isobasins.shp /data/isobasins/1600km2/split/
-
-Isobasins between 1 km2 and 2030 km2
-
-python3 code/isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 640000 /data/isobasins/5km2to2030km2/isobasins.shp /data/isobasins/5km2to2030km2/split/
+Isobasins between 2 Isobasins between 2 kmkm<sup>2</sup> and 2030 kmkm<sup>2</sup>
+ and 2030 Isobasins between 2 kmkm<sup>2</sup> and 2030 kmkm<sup>2</sup>
 
 
-## Clip input data with isobasins
+python3 code/create_isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 640000 /data/isobasins/5km2to2030km2/isobasins.shp /data/isobasins/5km2to2030km2/split/
 
 
+# Clip input data with isobasins
+
+
+**Clip Ditches**
+convert ditches to vrt and clip nu isobasins
+
+    python3 code/split_raster_by_isobasins.py temp/ /national/ditches/1m/classified/ /data/ditches1m.vrt data/isobasins/split_isobasins/ data/clipraster/ditches/ -32768
+
+
+
+
+The isobasins are too large for ditches to be stored as shapefiles. Therefore they were burned into the DEM tiles before the DEM tiles were clipped by isobasins. fillburn requires the ditches to be in vector format. Since they were converted to vector earlier these will be reused. The raw dara is stored by lidar tile and need to be merged before they can be clipped. 
+
+**Rename ditches**
+
+    python3 code/utils/remove_year.py /data/rastertovector/
+
+
+    python3 code/fillburn_ditches.py /national/Swedish1mDEM_old/tiles/ /data/rastertovector/ /data/fillburn_ditches/
+
+
+
+    python3 code/split_ditches_by_isobasins.py /temp/ /data/isobasins/5km2to2030km2/split/ /national/ditches/1m/rastertovector/ /data/clipvector/ditches/
 
 **Clip dem**
 
-    python3 code/split_raster_by_isobasins.py temp/ /national/Swedish1mDEM_old/tiles/ /national/Swedish1mDEM_old/mosaic1m.vrt data/isobasins/split_isobasins/ data/clipraster/ -32768
+    python3 code/split_raster_by_isobasins.py temp/ /national/Swedish1mDEM_old/tiles/ /national/Swedish1mDEM_old/mosaic1m.vrt data/isobasins/split_isobasins/ data/clipraster/dem/ -32768
 
 
-To do:
-**Clip Ditches**
 
- python3 code/split_ditches_by_isobasins.py
- 
 
+smaller test
+
+    python3 code/split_ditches_by_isobasins.py /temp/ /data/isobasins/5km2to2030km2/split/ /data/temp/ /data/clipvector/ditches/
 
 **Clip Roads**
 
@@ -83,7 +79,7 @@ To do:
 
 **Clip Railroads**
 
-    python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/vj_riks.shp /data/clipvector/railroads/
+    python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/jl_riks.shp /data/clipvector/railroads/
     
 **Clip Streams**
 
@@ -92,7 +88,8 @@ To do:
 **Clip Culverts**
     python3 code/split_culvert_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/culverts/ /data/clipvector/culverts/
 
-    
+**Identify catchments without roads, streams, culverts or ditches**
+
 # Preprocessing
 
 The preprocessing is done to create a hydrologically compatible DEM and was done in x stepps. 

@@ -22,3 +22,7 @@ def clip_geopackage(input_geopackage, clip_input_shape, output_vector):
     clipped = gpd.clip(geopackage, shape)
     clipped.to_file(output_vector)
 
+def clip_geopandas(input_gpd, clip_input_shape, output_vector):
+    shape = gpd.read_file(clip_input_shape)
+    clipped = gpd.clip(input_gpd, shape)
+    clipped.to_file(output_vector)

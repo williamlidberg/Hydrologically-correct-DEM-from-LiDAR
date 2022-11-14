@@ -6,7 +6,7 @@ import shutil
 import geopandas as gpd
 from osgeo import ogr
 from tqdm import tqdm
-
+from utils import clean_temp
 wbt = whitebox.WhiteboxTools()
 
 def split_polygon(input_shape, split_shape_output):
@@ -27,14 +27,14 @@ def split_polygon(input_shape, split_shape_output):
         new_lyr.CreateFeature(new_feat)
         del new_ds, new_lyr
 
+
 def buffer_basins(input_basin, buffered_basin):
     gdf = gpd.read_file(input_basin)
     gdf['geometry'] = gdf.geometry.buffer(0)
     gdf.to_file(buffered_basin)
 
 def main(tempdir, dem, coastline, size, isobasins, split_isobasins):
-    for i in os.listdir(tempdir):
-        os.remove(tempdir + i)
+    clean_temp.clean(tempdir)
     wbt.fill_missing_data(
         i = dem, 
         output = tempdir + 'filledmissing.tif', 
@@ -77,7 +77,8 @@ def main(tempdir, dem, coastline, size, isobasins, split_isobasins):
     gdf['poly_area'] = gdf['geometry'].area/ 10**6
     gdf = gdf.loc[gdf['poly_area'] > 2]
     gdf.to_file(isobasins)
-    
+
+ 
     print('explode isobasin shapefile')
     split_polygon(isobasins, tempdir)
 
@@ -86,12 +87,12 @@ def main(tempdir, dem, coastline, size, isobasins, split_isobasins):
     pathtoshapefiles = tempdir + '/*.shp'
     listofshapefiles = glob.glob(pathtoshapefiles)
     for basin in tqdm(listofshapefiles):
-        bufferedbasin = split_isobasins + os.path.basename(basin)
-        buffer_basins(basin, bufferedbasin)
+        if 'erasedisobasins' not in basin and 'isobasins' not in basin:
+                
+            bufferedbasin = split_isobasins + os.path.basename(basin)
+            buffer_basins(basin, bufferedbasin)
 
-
-    for i in os.listdir(tempdir):
-        os.remove(tempdir + i)
+    clean_temp.clean(tempdir)
 
 
 if __name__== '__main__':

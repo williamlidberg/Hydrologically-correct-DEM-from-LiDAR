@@ -5,6 +5,7 @@ import argparse
 import glob
 import geopandas as gpd
 from tqdm import tqdm
+from utils import clean_temp
 
 def burn_culverts(tempdir, dem, culvert, output):
     wbt.vector_polygons_to_raster(
@@ -29,6 +30,7 @@ def main(tempdir, demdir, culvertdir, ditchdir, roaddir, railroaddir, streamdir,
     for watershed in os.listdir(demdir):
         if watershed.endswith('.tif'):
 
+
             # Roads and railroads need to be merged into a single file before burning.
             roads = roaddir + watershed.replace('.tif', '.shp')
             railroads = railroaddir + watershed.replace('.tif', '.shp')
@@ -37,35 +39,35 @@ def main(tempdir, demdir, culvertdir, ditchdir, roaddir, railroaddir, streamdir,
                 output = tempdir + watershed.replace('.tif', '_merge.shp')
             )
             wbt.burn_streams_at_roads(
-                dem = demdir + watershed, 
+                dem = tempdir + watershed.replace('.tif', '_fillburn.tif'), 
                 streams = streamdir + watershed.replace('.tif', '.shp'), 
                 roads = tempdir + watershed.replace('.tif', '_merge.shp'), 
                 output = tempdir + watershed.replace('.tif', '_roadburned.tif'), 
                 width=50
             )            
-            # Burn ditches into DEM
-            wbt.fill_burn(
-                dem = tempdir + watershed.replace('.tif', '_roadburned.tif'), 
-                streams = ditchdir + watershed.replace('.tif', '.shp'), 
-                output = tempdir + watershed.replace('.tif', '_fillburn.tif')
-            )
 
             # Burn culverts into DEM
-            dem = tempdir + watershed.replace('.tif', '_fillburn.tif')
+            dem = tempdir + watershed.replace('.tif', '_roadburned.tif')
             culvert = culvertdir + watershed.replace('.tif', '.shp')
             burned = tempdir + watershed.replace('.tif', '._culvertburn.tif')
             burn_culverts(tempdir, dem, culvert, burned)
 
+            # Burn ditches into DEM
+            wbt.subtract(
+                input1 = tempdir + watershed.replace('.tif', '._culvertburn.tif'), 
+                input2 = ditchdir + watershed, 
+                output = tempdir + watershed.replace('.tif', '._ditchburn.tif')
+            )
             # Final breaching step
             wbt.breach_depressions(
-                dem = tempdir + watershed.replace('.tif', '._culvertburn.tif'), 
+                dem = tempdir + watershed.replace('.tif', '._ditchburn.tif'), 
                 output = breacheddir + watershed, 
                 max_depth=2, 
                 max_length=None, 
                 flat_increment=0.001, 
                 fill_pits=True
             )
-
+            clean_temp.clean(tempdir)
 
 if __name__== '__main__':
     parser = argparse.ArgumentParser(
