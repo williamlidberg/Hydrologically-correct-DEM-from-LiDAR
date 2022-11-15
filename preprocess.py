@@ -32,16 +32,12 @@ def main(tempdir, demdir, culvertdir, ditchdir, roaddir, railroaddir, streamdir,
 
 
             # Roads and railroads need to be merged into a single file before burning.
-            roads = roaddir + watershed.replace('.tif', '.shp')
-            railroads = railroaddir + watershed.replace('.tif', '.shp')
-            wbt.merge_vectors(
-                inputs = roads;railroads, 
-                output = tempdir + watershed.replace('.tif', '_merge.shp')
-            )
+            railroads = roaddir + watershed.replace('.tif', '.shp')
+
             wbt.burn_streams_at_roads(
                 dem = tempdir + watershed.replace('.tif', '_fillburn.tif'), 
                 streams = streamdir + watershed.replace('.tif', '.shp'), 
-                roads = tempdir + watershed.replace('.tif', '_merge.shp'), 
+                railroads = tempdir + watershed.replace('.tif', '_merge.shp'), 
                 output = tempdir + watershed.replace('.tif', '_roadburned.tif'), 
                 width=50
             )            
@@ -52,12 +48,13 @@ def main(tempdir, demdir, culvertdir, ditchdir, roaddir, railroaddir, streamdir,
             burned = tempdir + watershed.replace('.tif', '._culvertburn.tif')
             burn_culverts(tempdir, dem, culvert, burned)
 
-            # Burn ditches into DEM
+            # Burn ditches into DEM 
             wbt.subtract(
                 input1 = tempdir + watershed.replace('.tif', '._culvertburn.tif'), 
                 input2 = ditchdir + watershed, 
                 output = tempdir + watershed.replace('.tif', '._ditchburn.tif')
             )
+            
             # Final breaching step
             wbt.breach_depressions(
                 dem = tempdir + watershed.replace('.tif', '._ditchburn.tif'), 

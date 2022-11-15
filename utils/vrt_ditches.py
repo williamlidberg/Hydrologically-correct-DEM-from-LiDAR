@@ -5,8 +5,8 @@ from osgeo import gdal
 def vrt(inputdir, output_vrt):
     
     # border files needs to be excluded before creating the vrt
-    pathtotiles = inputdir + '/*/*.tif'
-    #pathtotiles = inputdir + '*.tif'
+    #pathtotiles = inputdir + '/*/*.tif'
+    pathtotiles = inputdir + '*.tif'
     listofalltiles = glob.glob(pathtotiles,recursive = True)
     listoftileswithoutborder = []
     for tile in listofalltiles:

@@ -39,49 +39,34 @@ python3 code/create_isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havs
 
 # Clip input data with isobasins
 
-
-**Clip Ditches**
-convert ditches to vrt and clip nu isobasins
-
-    python3 code/split_raster_by_isobasins.py temp/ /national/ditches/1m/classified/ /data/ditches1m.vrt data/isobasins/split_isobasins/ data/clipraster/ditches/ -32768
-
-
-
-
-The isobasins are too large for ditches to be stored as shapefiles. Therefore they were burned into the DEM tiles before the DEM tiles were clipped by isobasins. fillburn requires the ditches to be in vector format. Since they were converted to vector earlier these will be reused. The raw dara is stored by lidar tile and need to be merged before they can be clipped. 
-
-**Rename ditches**
-
-    python3 code/utils/remove_year.py /data/rastertovector/
-
-
-    python3 code/fillburn_ditches.py /national/Swedish1mDEM_old/tiles/ /data/rastertovector/ /data/fillburn_ditches/
-
-
-
-    python3 code/split_ditches_by_isobasins.py /temp/ /data/isobasins/5km2to2030km2/split/ /national/ditches/1m/rastertovector/ /data/clipvector/ditches/
+## Clip rasters
 
 **Clip dem**
 
     python3 code/split_raster_by_isobasins.py temp/ /national/Swedish1mDEM_old/tiles/ /national/Swedish1mDEM_old/mosaic1m.vrt data/isobasins/split_isobasins/ data/clipraster/dem/ -32768
 
+**Clip Ditches**
+
+Fillburn failed on the tiles so a normal subtract will be used instead. Instead of burning the classified ditches I have decided to burn the probability instead. The probability was originaly between 0 and 100. I reclassified all probabilities under 50% to 0 and rescaled the values from 0-100 to 0-1. The reclassified raster were then subtracted from the original DEM with the pixel values. This meant that the min ditch burn depth is 0.5 m and the max burn depth is 1 m. 
+
+    python3 code/reclassify_ditches.py /national/ditches/1m/probability/ /data/reclassified_ditches/
+
+convert ditches to vrt and clip with isobasins
+
+    python3 code/split_raster_by_isobasins.py temp/ /data/reclassified_ditches/ /data/ditches1m.vrt /data/isobasins/5km2to2030km2/split/ data/clipraster/ditches/ -32768
 
 
 
-smaller test
+## Clip vectors
 
-    python3 code/split_ditches_by_isobasins.py /temp/ /data/isobasins/5km2to2030km2/split/ /data/temp/ /data/clipvector/ditches/
+**Clip Roads and railroads**
+Streams were burned across roads and railroads in order to let the water pass. A merged shapefile containing both roads and railroads were clipped by the outlines of the isobasins.
 
-**Clip Roads**
+    python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/roads_railroads.shp /data/clipvector/roads_rail/
 
-    python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/vl_riks.shp /data/clipvector/roads/
-
-
-**Clip Railroads**
-
-    python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/jl_riks.shp /data/clipvector/railroads/
     
 **Clip Streams**
+Streams from the propertymap were also clipped to the outline of the isobasins.
 
     python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/vl_riks.shp /data/clipvector/streams/
 
@@ -93,7 +78,7 @@ smaller test
 # Preprocessing
 
 The preprocessing is done to create a hydrologically compatible DEM and was done in x stepps. 
-    1. AI detected ditch channels were burned into the DEM using Fillburn from whitebox.
+    1. AI detected ditch channels were burned into the DEM .
     2. streams were burned across roads and railroads for a maximum of 50 meters.
     3. Road
 
@@ -106,12 +91,6 @@ The preprocessing is done to create a hydrologically compatible DEM and was done
     python3 code/Flowaccumulation.py /data/breachedwatersheds/ /data/D8pointer/ /data/D8flowaccumulation/
 
 
-# test dtw
-
-    python3 /code/temp/dtw.py /data/inspect/ /data/clipraster/ /data/breachedwatersheds/ 100000 /data/dtw/
-
-    # krycklan
-    python3 /code/temp/dtw.py /data/inspect/ /data/krycklan/dem/ /data/krycklan/breacheddem/ 100000 /data/dtw/
 
 **Unzip culverts**
     python3 /code/utils/unzipfiles.py /data/culverts/

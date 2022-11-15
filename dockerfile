@@ -13,6 +13,7 @@ RUN pip install rtree
 RUN pip install pygeos
 RUN pip install geopandas
 RUN pip install tqdm
+RUN pip install rasterio
 # RUN pip install splitraster
 
 
