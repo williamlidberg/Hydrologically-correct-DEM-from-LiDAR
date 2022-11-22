@@ -10,8 +10,7 @@ def vrt(inputdir, output_vrt):
     listofalltiles = glob.glob(pathtotiles,recursive = True)
     listoftileswithoutborder = []
     for tile in listofalltiles:
-        if 'border' not in tile and 'metadata' not in tile and 'density' not in tile:
-            listoftileswithoutborder.append(tile)
+        listoftileswithoutborder.append(tile)
     print(len(listoftileswithoutborder), 'tiles detected')
     # create vrt from none border tiles
     gdal.SetConfigOption('GDAL_NUM_THREADS', 'ALL_CPUS')

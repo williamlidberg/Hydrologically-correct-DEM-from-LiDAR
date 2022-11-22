@@ -75,7 +75,7 @@ def main(tempdir, dem, coastline, size, isobasins, split_isobasins):
     gdf = gpd.read_file(tempdir + 'erasedisobasins.shp')
     gdf['geometry'].to_crs({'init': 'epsg:3006'})
     gdf['poly_area'] = gdf['geometry'].area/ 10**6
-    gdf = gdf.loc[gdf['poly_area'] > 2]
+    gdf = gdf.loc[gdf['poly_area'] > 2] # 2 square km
     gdf.to_file(isobasins)
 
  

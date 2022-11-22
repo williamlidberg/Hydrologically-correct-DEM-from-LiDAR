@@ -9,10 +9,14 @@ Road culverts were downloaded from the Swedish traffic authority.\
 Stream and road networks were extracted from the swedish property map.
 
 # Set up docker
+Navigate to the dockerfile and build container.
+cd /mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/
+
     docker build -t dem .
 **Start container**
 
     docker run -it  --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/national_datasets/,target=/national --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code --mount type=bind,source=/mnt/ramdisk/,target=/temp dem:latest
+
 
 b5ff4579177:
 
@@ -34,7 +38,7 @@ Isobasins between 2 Isobasins between 2 kmkm<sup>2</sup> and 2030 kmkm<sup>2</su
  and 2030 Isobasins between 2 kmkm<sup>2</sup> and 2030 kmkm<sup>2</sup>
 
 
-python3 code/create_isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 640000 /data/isobasins/5km2to2030km2/isobasins.shp /data/isobasins/5km2to2030km2/split/
+python3 code/create_isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 640000 /data/isobasins/isobasins.shp /data/isobasins/split/
 
 
 # Clip input data with isobasins
@@ -53,7 +57,7 @@ Fillburn failed on the tiles so a normal subtract will be used instead. Instead 
 
 convert ditches to vrt and clip with isobasins
 
-    python3 code/split_raster_by_isobasins.py temp/ /data/reclassified_ditches/ /data/ditches1m.vrt /data/isobasins/5km2to2030km2/split/ data/clipraster/ditches/ -32768
+    python3 code/split_ditches_by_isobasins.py /temp/ /data/reclassified_ditches/ /data/ditches1m.vrt /data/isobasins/split/ /data/reclassified_ditches/ -32768
 
 
 
@@ -62,16 +66,16 @@ convert ditches to vrt and clip with isobasins
 **Clip Roads and railroads**
 Streams were burned across roads and railroads in order to let the water pass. A merged shapefile containing both roads and railroads were clipped by the outlines of the isobasins.
 
-    python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/roads_railroads.shp /data/clipvector/roads_rail/
+    python3 code/split_vector_by_isobasins.py /data/isobasins/split/ /data/fastighetskartan/2021-08-09/roads_railroads.shp /data/clipvector/roads_rail/
 
     
 **Clip Streams**
 Streams from the propertymap were also clipped to the outline of the isobasins.
 
-    python3 code/split_vector_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/vl_riks.shp /data/clipvector/streams/
+    python3 code/split_vector_by_isobasins.py /data/isobasins/split/ /data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/vl_riks.shp /data/clipvector/streams/
 
 **Clip Culverts**
-    python3 code/split_culvert_by_isobasins.py /data/isobasins/5km2to2030km2/split/ /data/culverts/ /data/clipvector/culverts/
+    python3 code/split_culvert_by_isobasins.py /data/isobasins/split/ /data/culverts/ /data/clipvector/culverts/
 
 **Identify catchments without roads, streams, culverts or ditches**
 

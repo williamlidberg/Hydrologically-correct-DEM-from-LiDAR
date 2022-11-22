@@ -4,6 +4,7 @@ wbt = whitebox.WhiteboxTools()
 import argparse
 import glob
 import geopandas as gpd
+import shutil
 from tqdm import tqdm
 from utils import clean_temp
 
@@ -26,21 +27,23 @@ def burn_culverts(tempdir, dem, culvert, output):
 
 # not all watersheds have culverts or ditches or roads. compare lists between each?
 
-def main(tempdir, demdir, culvertdir, ditchdir, roaddir, railroaddir, streamdir, breacheddir):
+def main(tempdir, demdir, streamdir, railroaddir culvertdir, ditchdir,, , breacheddir):
     for watershed in os.listdir(demdir):
         if watershed.endswith('.tif'):
 
 
-            # Roads and railroads need to be merged into a single file before burning.
-            railroads = roaddir + watershed.replace('.tif', '.shp')
-
+            # Roads and railroads were merged into a single file before burning.
+            roadburned = tempdir + watershed.replace('.tif', '_roadburned.tif')
+            dem = tempdir + watershed
             wbt.burn_streams_at_roads(
-                dem = tempdir + watershed.replace('.tif', '_fillburn.tif'), 
+                dem = dem,
                 streams = streamdir + watershed.replace('.tif', '.shp'), 
-                railroads = tempdir + watershed.replace('.tif', '_merge.shp'), 
-                output = tempdir + watershed.replace('.tif', '_roadburned.tif'), 
+                roads = railroaddir + watershed.replace('.tif', '.shp'), 
+                output = roadburned, 
                 width=50
             )            
+            
+
 
             # Burn culverts into DEM
             dem = tempdir + watershed.replace('.tif', '_roadburned.tif')
@@ -48,12 +51,22 @@ def main(tempdir, demdir, culvertdir, ditchdir, roaddir, railroaddir, streamdir,
             burned = tempdir + watershed.replace('.tif', '._culvertburn.tif')
             burn_culverts(tempdir, dem, culvert, burned)
 
+
             # Burn ditches into DEM 
             wbt.subtract(
                 input1 = tempdir + watershed.replace('.tif', '._culvertburn.tif'), 
                 input2 = ditchdir + watershed, 
                 output = tempdir + watershed.replace('.tif', '._ditchburn.tif')
             )
+
+
+            # some watersheds do not have mapped culverts. Carry over the DEM to the next step.
+            if roadburned not in os.listdir(tempdir):
+                print('no road burned dem in temp dir, copying dem over', watershed)
+                dem = dem + watershed
+                copydem = tempdir + watershed.replace('.tif', '_roadburned.tif')
+                shutil.copy(dem, copydem)
+
             
             # Final breaching step
             wbt.breach_depressions(
@@ -65,6 +78,7 @@ def main(tempdir, demdir, culvertdir, ditchdir, roaddir, railroaddir, streamdir,
                 fill_pits=True
             )
             clean_temp.clean(tempdir)
+
 
 if __name__== '__main__':
     parser = argparse.ArgumentParser(

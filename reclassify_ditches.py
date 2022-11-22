@@ -2,6 +2,7 @@ import os
 import argparse
 import rasterio
 import numpy as np
+from tqdm import tqdm
 
 def reclass(intile, outtile):
     with rasterio.open(intile) as src:
@@ -22,7 +23,7 @@ def reclass(intile, outtile):
 
 
 def main(probabilitydir, reclassifieddir):
-    for tile in os.listdir(probabilitydir):
+    for tile in tqdm(os.listdir(probabilitydir)):
         intile = probabilitydir + tile
         outtile = reclassifieddir + tile
         reclass(intile, outtile)
