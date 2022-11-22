@@ -3,13 +3,13 @@ import glob
 import argparse
 from tqdm import tqdm
 import utils.clip
-import utils.vrt
+import utils.vrt_dem
 
     
 def main(tempdir, tilepath, vrtpath, isobasindir, clipdir, nodata): 
     
     print('build vrt')
-    utils.vrt.vrt(tilepath, vrtpath)
+    utils.vrt_dem.vrt(tilepath, vrtpath)
 
 
     print('clip raster to isobasin outlines')

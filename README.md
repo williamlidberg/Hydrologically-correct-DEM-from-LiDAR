@@ -40,6 +40,7 @@ Isobasins between 2 Isobasins between 2 kmkm<sup>2</sup> and 2030 kmkm<sup>2</su
 
 python3 code/create_isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 640000 /data/isobasins/isobasins.shp /data/isobasins/split/
 
+1313 watersheds were produced
 
 # Clip input data with isobasins
 
