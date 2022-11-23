@@ -20,8 +20,13 @@ echo "Clip roads and railroads with Isobasins"
 echo "Clip culverts with Isobasins"
 #docker run --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/national_datasets/,target=/national --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code --mount type=bind,source=/mnt/ramdisk/,target=/temp dem:latest python3 code/split_geopackage_by_isobasins.py /data/isobasins/split/ /data/culverts/ /data/clipvector/culverts/
 
+
 echo "Pre-process DEM"
-docker run --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/national_datasets/,target=/national --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code --mount type=bind,source=/mnt/ramdisk/,target=/temp dem:latest python3 code/preprocess.py /temp/ /data/clipraster/dem/ /data/clipraster/ditches/ /data/clipvector/streams/ /data/clipvector/roads_rail/ /data/clipvector/culverts/ /data/preprocessed/
+
+time docker run --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/national_datasets/,target=/national --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code --mount type=bind,source=/mnt/ramdisk/,target=/temp dem:latest python3 code/preprocess.py /temp/ /data/clipraster/dem/ /data/clipraster/ditches/ /data/clipvector/streams/ /data/clipvector/roads_rail/ /data/clipvector/culverts/ /data/preprocessed/
+
+
+#docker run --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/national_datasets/,target=/national --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code --mount type=bind,source=/mnt/ramdisk/,target=/temp dem:latest python3 code/preprocess.py /temp/ /data/clipraster/dem/ /data/clipraster/ditches/ /data/clipvector/streams/ /data/clipvector/roads_rail/ /data/clipvector/culverts/ /data/preprocessed/
 
 echo "Done"
 exit

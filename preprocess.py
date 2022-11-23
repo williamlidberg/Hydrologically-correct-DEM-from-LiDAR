@@ -2,28 +2,57 @@ import os
 import whitebox
 wbt = whitebox.WhiteboxTools()
 import argparse
-import glob
 import geopandas as gpd
 import shutil
+import rasterio
+from rasterio import features
 from tqdm import tqdm
 from utils import clean_temp
 
 def burn_culverts(tempdir, dem, culvert, output):
-    wbt.vector_polygons_to_raster(
-        i = culvert, 
-        output = tempdir + dem.replace('.tif', 'culvert_.tif'),
-        field= 'burndepth', 
-        nodata=True, 
-        cell_size=None, 
-        base= dem
-    )
+
+    # Due to a bug in whiteboxtools this method is not used now.
+    # Instead rasterio is used to rasterize the culvert polygons. 
+    # wbt.vector_polygons_to_raster(
+    #     i = culvert, 
+    #     output = dem.replace('_ditchburn.tif', '_culvert.tif'),
+    #     field= 'burndepth', 
+    #     nodata=False, 
+    #     cell_size=None, 
+    #     base= dem
+    # )
+
+    # This is a temporary solution using rasterio that solves the same problem
+    vectorculvert = gpd.read_file(culvert)
+    culvert_geometries = [shapes for shapes in vectorculvert.geometry]
+    basefile = rasterio.open(dem)
+    rasterized = features.rasterize(culvert_geometries,
+        out_shape = basefile.shape,
+        fill = 0,
+        out = None,
+        transform = basefile.transform,
+        all_touched = False,
+        default_value = 2,
+        dtype = None)
+
+
+    # Write to TIFF
+    kwargs = basefile.meta
+    kwargs.update(
+        dtype=rasterio.float32,
+        count=1,
+        compress='lzw')
+    outtile = dem.replace('_ditchburn.tif', '_culvert.tif')
+    with rasterio.open(outtile, 'w', **kwargs) as dst:
+        dst.write_band(1, rasterized.astype(rasterio.float32))
+
+    # "Burn culverts into DEM by subtracting them from the DEM with 2 m"
     wbt.subtract(
         input1 = dem, 
-        input2 = tempdir + dem.replace('.tif', 'culvert_.tif'), 
+        input2 = dem.replace('_ditchburn.tif', '_culvert.tif'), 
         output = output
     )
 
-# python3 code/preprocessing.py /temp/ /data/clipraster/dem/ /data/clipraster/ditches/ /data/clipvector/streams/ /data/clipvector/roads_rail/ /data/clipvector/culverts/ /data/preprocessed/
 
 # not all watersheds have culverts or ditches or roads
 def main(tempdir, demdir, ditchdir, streamdir, railroaddir, culvertdir, breacheddir):
@@ -46,7 +75,7 @@ def main(tempdir, demdir, ditchdir, streamdir, railroaddir, culvertdir, breached
             if os.path.isfile(culvert): 
                 burn_culverts(tempdir, dem, culvert, culvertburned)
             else:
-                print('no culverts to burn in this watershed, copying dem over to the next step', watershed)
+                print(watershed, 'is missing culverts, forwarding ditchburned dem to the next step')
                 shutil.copy(dem, culvertburned)
 
             # Roads and railroads were merged into a single file before burning. This merging stepp is not covered in this code.
@@ -64,7 +93,7 @@ def main(tempdir, demdir, ditchdir, streamdir, railroaddir, culvertdir, breached
                     width=50
                 )            
             else:
-                print('This watershed is missing streams or roads, copying dem over to the next step', watershed)
+                print(watershed, 'is missing streams or roads, forwarding the culvertburned dem to the next step')
                 shutil.copy(culvertburned, roadburned)
              
             # Final breaching step

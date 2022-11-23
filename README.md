@@ -1,50 +1,83 @@
+[![docs](https://img.shields.io/badge/whitebox-docs-brightgreen.svg)](https://www.whiteboxgeo.com/manual/wbt_book/preface.html)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![docker image](https://img.shields.io/docker/pulls/williamlidberg/ditchnet.svg)](https://hub.docker.com/repository/docker/williamlidberg/ditchnet)
+[![Twitter Follow](https://img.shields.io/twitter/follow/William_Lidberg?style=social)](https://twitter.com/william_lidberg)
+
 # Hydrologicall-correct-DEM-1m
-This will be based on a combination of the old national lidar scan and the new national lidarscan (laserdata skog).
 
-Since the entire 1 m DEM is to large to fit in memory it first need to be split into smaller parts. This was done by creating isobasins from a dem resampled to a resolution of 50m. These isobasins does not reach all the way to the coast so SMHIs subbasins were used for coastal areas.
+<img src="images/breached.png" alt="Charcoal kiln" width="100%"/>
 
-# Data
-1 m dem were created by the Swedish land use and cadastral registration authority and downloaded by SLU.\
-Road culverts were downloaded from the Swedish traffic authority.\
-Stream and road networks were extracted from the swedish property map.
+# Table of  Contents
 
-# Set up docker
-Navigate to the dockerfile and build container.
-cd /mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/
+1. [Description](#Training-data)
+2. [Environment](#Environment)
+    1. [Build docker container](##build-docker-container)
+    2. [Run docker container](##Run-docker-container)
+3. [Data](#Data)
+    1. [Ditches](##Ditches)
+    1. [Digital elevation model](##Digital-elevation-model)
+    1. [Road culverts](##Road-culverts)
+    1. [Roads, Railroads and streams](##Roads,-Railroads-and-streams)
+3. [Processing](#Processing)
+    1. [Create isobasins](##Create-isobasins)
+    1. [Clip input data with isobasins](## Clip-input-data-with-isobasins)
 
+
+
+***
+# Description
+With the introduction of high-resolution digital elevation models, it is possible to use digital terrain analysis to extract small streams. In order to map streams correctly, it is necessary to remove errors and artificial sinks in the digital elevation models. This step is known as preprocessing and will allow water to move across a digital landscape. However, new challenges are introduced with increasing resolution because the effect of anthropogenic artefacts such as road embankments and bridges increases with increased resolution. These are problematic during the preprocessing step because they are elevated above the surrounding landscape and act as artificial dams. 
+
+Sinks are defined as areas surrounded by cells with higher elevations, which prevent water from moving further. Thus, preprocessing of DEMs is important, especially because any errors in the input data will be amplified with each subsequent calculation. There are two commonly used methods to handle sinks: filling and breaching. A fill algorithm examines the cells surrounding a sink and increases the elevation of the sink cells to match the lowest outlet cell. A breaching algorithm instead lowers the elevation of cells along a path between the lowest cell in the sink and the outlet of the sink. This project will be build on the work by [Lidberg et al 2017](https://onlinelibrary.wiley.com/doi/10.1002/hyp.11385) and [Lidberg et al 2021](fixlink) by burning ditches and culverts into the DEM.
+
+# Environment
+A gdal docker image was used as a base for this project and the following python packages were installed: whitebox, rtree, pygeos, geopandas, tqdm, rasterio. Refer to the dockerfile for details on versions and environment setup. A complete docker image can be pulled from xxxx
+
+## Build docker container
+Navigate to the dockerfile and build container. In my case this was done like this:
+
+    cd /mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/
     docker build -t dem .
-**Start container**
-
+## Run docker container
+The data from our servers were mounted to the container over a 10 GBit network:\
+**data** is the gneral directory where all the processing were done.\
+**temp** is a 20 GB RAM disk where intermediate files were written to avoid reading and writing large amounts of data over the network.\
+**national** is where the 1 m DEM tiles were located. This directroy was mounted seperatly to avoid moving large amounts of data to the "data" directory.\
+**code** is the local github repository
+ 
     docker run -it  --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/national_datasets/,target=/national --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code --mount type=bind,source=/mnt/ramdisk/,target=/temp dem:latest
 
 
-b5ff4579177:
+# Data
+## Digital elevation model
+ 
+ The digital elevation model (DEM) had a resolution of 1 m and were downloaded by SLU. This data was a mix of the old LiDAR scan and the new LiDAR scan known as "laserdata skog nedladdning". It was stored under the **/national/Swedish1mDEM_old/tiles/** directory. A DEM resampled to 50x50m was used to create the watersheds or isobasins. It was stored under
+**/data/dem50m/**
 
-# Prepare data
+## Ditches
+The ditches used for this project was created with the AI model described by xxxx. The ditch probability raster was used to burn in ditches into the DEM. The ditches were stored under **/national/ditches/1m/probability/**
 
-# memory testing
+## Road culverts
+Culverts were downloaded as geopackages from the [Swedish traffic authority](https://lastkajen.trafikverket.se/login). The culvert data were stored in **/data/culverts/**
 
-    **breaching worked for 800km2 and used 45 GB RAM**
-    **Breach for 160000km2 used 77 GB RAM. it took 360 min***
-    **DTW 60GB 1h11 min** 
-    **DTW 106GB 2h12 m** 
-    **Clipp**
+## Roads, Railroads and streams
+
+Railroads, road and stream networks were extracted from the swedish property map created by [Swedish traffic authority](https://www.lantmateriet.se/). They were stored as lines that covered all of Sweden. The data were stored under **/data/fastighetskartan/2021-08-09/delivery/topo/fastighk/riks/**
+
+
+# Processing
+The entire process from raw data to hydrologically correct DEM can be run with the Master.sh batch script. Just store the data in the correct directories and update the mount paths in the Master.sh script to make it work on your system. Run the batchscript by navigating to its directory and type ./Master.sh
+
    
-
 
 ## Create isobasins
 
-Isobasins between 2 Isobasins between 2 kmkm<sup>2</sup> and 2030 kmkm<sup>2</sup>
- and 2030 Isobasins between 2 kmkm<sup>2</sup> and 2030 kmkm<sup>2</sup>
 
-
-python3 code/create_isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 640000 /data/isobasins/isobasins.shp /data/isobasins/split/
+    python3 code/create_isobasins.py /temp/ /data/dem50m/dem_50m.tif /data/smhi/havsomraden2008_swe.shp 640000 /data/isobasins/isobasins.shp /data/isobasins/split/
 
 1313 watersheds were produced
 
-# Clip input data with isobasins
-
-## Clip rasters
+## Clip input data with isobasins
 
 **Clip dem**
 
@@ -61,9 +94,6 @@ convert ditches to vrt and clip with isobasins
     python3 code/split_ditches_by_isobasins.py /temp/ /data/reclassified_ditches/ /data/ditches1m.vrt /data/isobasins/split/ /data/reclassified_ditches/ -32768
 
 
-
-## Clip vectors
-
 **Clip Roads and railroads**
 Streams were burned across roads and railroads in order to let the water pass. A merged shapefile containing both roads and railroads were clipped by the outlines of the isobasins.
 
@@ -78,11 +108,10 @@ Streams from the propertymap were also clipped to the outline of the isobasins.
 **Clip Culverts**
     python3 code/split_culvert_by_isobasins.py /data/isobasins/split/ /data/culverts/ /data/clipvector/culverts/
 
-**Identify catchments without roads, streams, culverts or ditches**
 
-# Preprocessing
+# Pre-processing
 
-The preprocessing is done to create a hydrologically compatible DEM and was done in x stepps. 
+The pre-processing is done to create a hydrologically compatible DEM and was done in x stepps. 
     1. AI detected ditch channels were burned into the DEM .
     2. streams were burned across roads and railroads for a maximum of 50 meters.
     3. Road
@@ -94,69 +123,3 @@ The preprocessing is done to create a hydrologically compatible DEM and was done
     # Topographical modeling for hydrological features
 
     python3 code/Flowaccumulation.py /data/breachedwatersheds/ /data/D8pointer/ /data/D8flowaccumulation/
-
-
-
-**Unzip culverts**
-    python3 /code/utils/unzipfiles.py /data/culverts/
-
-
-
-
-
-
-
-# Hydrologically-correct-DEM-from-LiDAR 05m - remove later
-How to make a hydrollogically compatible DEM from a national LiDAR scan
-The raw LiDAR data was downloaded from the Swedish mapping, cadastral and land registration authority (Lantmäteriet): https://www.lantmateriet.se/en/maps-and-geographic-information/geodataprodukter/produktlista/laserdata-nedladdning-skog/
-
-
-# With docker container:
-docker build -t dem .
-
-**Start container**
-
-docker run -it  --mount type=bind,source=/mnt/Extension_100TB/national_datasets/laserdataskog/,target=/data --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code dem:latest
-
-**Create LiDAR Tile Footprint**\
-python3 /code/lidar_tile_footprint.py 
-
-
-**Select and copy relevant laztiles to new directory**
-python3 /code/pool_laz_files.py 
-
-once all data is pooled the script loop_process_new_block.py can be used to create DEM tiles without edgeeffects. This script uses the json files in the metadata directory of each block and intersect the block extent with a lidar tile index file. All laz files that intersect that extent gets copied to a new directory. This includes neighbouring tiles. DEM raster tiles are then created from the copied laz tiles but only tiles that are inside the block gets copied to the final output directory. This enables looping over lidar blocks and creating a seamless dem.  
-
-
-# Process all existing blocks SFA
-python E:/William/laserdataskog/loop_process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/LAZ/original/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/laserdataskog/dem_dir/
-
-
-
-# Process all existing blocks docker - SLU
-python3 /code/loop_process_new_block.py /code/data/Indexrutor_2_5km_Sverige.shp /data/original/ /data/pooled_laz_files/ /data/workdir/ /data/dem05m/
-
-# Process all existing blocks docker - SLU test
-python3 /code/loop_process_new_block.py /code/data/Indexrutor_2_5km_Sverige.shp /data/originaltest/ /data/pooled_laz_files/ /data/workdir/ /data/dem05m/
-
-
-# Process all existing blocks SLU anaconda
-python Y:/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/loop_process_new_block.py Y:/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/data/Indexrutor_2_5km_Sverige.shp Y:/national_datasets/laserdataskog/originaltest/ Y:/national_datasets/laserdataskog/pooled_laz_files/ G:/workdir/ Y:/national_datasets/laserdataskog/dem05m/
-
-test
-
-python Y:/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/loop_process_new_block.py Y:/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/data/Indexrutor_2_5km_Sverige.shp Y:/national_datasets/laserdataskog/originaltest/ Y:/national_datasets/laserdataskog/pooled_laz_files/ G:/workdir/ Y:/national_datasets/laserdataskog/dem05m/
-
-
-
-# process new block
-python E:/William/laserdataskog/loop_process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/William/newblock/20C045/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/laserdataskog/dem_dir/
-
-
-python E:/William/laserdataskog/process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/William/newblock/20C045/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/newblockoutput/
-
-# process remaining files from 2018, 2021 and new files from 2022
-# new blocks are stored in E:/LAZ/2018/2022/ the script will loop over each block in this directory
-python E:/William/laserdataskog/loop_process_new_block.py E:/William/Indexrutor/Indexrutor_2_5km_Sverige.shp E:/William/newblock/20C045/ E:/William/laserdataskog/pooled/ E:/William/laserdataskog/workdir/ E:/William/laserdataskog/dem_dir/
-
-
