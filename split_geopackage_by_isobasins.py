@@ -28,10 +28,10 @@ def main(isobasindir, geopackagedir, clipped_shapefiledir):
                 emptywatersheds.append(isobasin)
                 continue
             # How wide are roads?
-            clipped['geometry'] = clipped.buffer(20)
+            #clipped['geometry'] = clipped.buffer(20)
 
             # How tall are roadbanks?
-            clipped['burndepth'] = 2
+            #clipped['burndepth'] = 2
             clipped.to_file(clippedout, driver = 'ESRI Shapefile', encoding = 'utf-8')
     print('The following watersheds did not have any culverts', emptywatersheds)
  
