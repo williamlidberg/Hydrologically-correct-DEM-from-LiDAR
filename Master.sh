@@ -17,8 +17,10 @@ echo "Clipping DEM with Isobasins"
 #time docker run --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/national_datasets/,target=/national --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code dem:latest python3 code/split_geopackage_by_isobasins.py /data/isobasins/split/ /data/culverts_line/ /data/clipvector/culverts_line/
 
 
-echo "PRE-PROCESS DEM"
-time docker run --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code dem:latest python3 code/preprocess.py /temp/ /data/clipraster/dem/ /data/clipraster/ditches/ /data/clipvector/streams/ /data/clipvector/roads_rail/ /data/clipvector/culverts_line/ /data/preprocessed/
+#echo "PRE-PROCESS DEM"
+#time docker run --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code dem:latest python3 code/preprocess.py /temp/ /data/clipraster/dem/ /data/clipraster/ditches/ /data/clipvector/streams/ /data/clipvector/roads_rail/ /data/clipvector/culverts_line/ /data/preprocessed/
+#echo "Done"
+time docker run --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code dem:latest python3 code/preprocess.py /temp/ /data/clipraster/dem_sizetest/ /data/clipraster/ditches/ /data/clipvector/streams/ /data/clipvector/roads_rail/ /data/clipvector/culverts_line/ /data/preprocessed/
 echo "Done"
 exit
 
