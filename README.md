@@ -21,6 +21,10 @@
     1. [Clip raster data with isobasins](##Clip-raster-data-with-isobasins)
     1. [Clip vector data with isobasins](##Clip-vector-data-with-isobasins)
 5. [Pre-processing method](#Pre-processing-method)
+6. [Streams](#Streams)
+    1. [Flow pointer](#Flow-pointer)
+    1. [Flow accumulation](#Flow-accumulation)
+    1. [Define streams](#Define-streams)
 
 
 
@@ -92,6 +96,13 @@ The pre-processing is done to create a hydrologically compatible DEM and was don
     3. Single cell pits were filled
     4. Completly flat areas such as lakes were given a slope of 0.001 degrees
     5. All remaining depressions/sinks were resolved by an agressive breaching approach
+# Streams
+## Flow pointer
+
+## Flow accumulation
+
+## Define streams
+
 
 # Contact
 Name: William Lidberg\
