@@ -66,8 +66,9 @@ Navigate to the dockerfile and build container. In my case this was done like th
     docker build -t dem .
 
 This is an example on how to run the container in interactive mode: 
- 
-    docker run -it  --mount type=bind,source=/mnt/GIS/hydrologically_correct_dem_1m/,target=/data --mount type=bind,source=/mnt/Extension_100TB/national_datasets/,target=/national --mount type=bind,source=/mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/,target=/code --mount type=bind,source=/mnt/ramdisk/,target=/temp dem:latest
+
+
+    docker run -it  -v /mnt/GIS/hydrologically_correct_dem_1m:/data -v /mnt/Extension_100TB/national_datasets:/national -v /mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR:/code -v /mnt/ramdisk:/temp dem:latest
 
 # Run pre-processing
 The entire process from raw data to hydrologically correct DEM can be run with the [batch file](Master.sh). Just store the data in the correct directories and update the mount paths in the [batch file](Master.sh).to make it work on your system. Run the batchscript by navigating to its directory and type ./Master.sh The completly pre-processed DEM files will be saved in /data/preprocessed/
@@ -96,12 +97,23 @@ The pre-processing is done to create a hydrologically compatible DEM and was don
     3. Single cell pits were filled
     4. Completly flat areas such as lakes were given a slope of 0.001 degrees
     5. All remaining depressions/sinks were resolved by an agressive breaching approach
+
+
+
+
+# Flow pointer and Flow accumulation
+    python3 /code/flow_accumulation.py /data/preprocessed/ /data/d8_flow_pointer/ /data/d8_flow_accumulation/
+
 # Streams
-## Flow pointer
+Streams are extracted from flow accumulation rasters based on the hydrologicall compatible DEM. The flow accumulation algorithm accepts both a DEM or flow pointer grid as input. Since the flow pointer grid is usefull for many other tasks it will be extracted along side the flow accumulation. The script "flow_accumulation.py" takes the pre-processed DEM as input and will output both flow pointer and flow accumulation rasters
 
-## Flow accumulation
+## Extract streams 6 ha
 
-## Define streams
+    python3 /code/extract_streams.py /temp/ /data/d8_flow_accumulation/ /data/d8_flow_pointer/ /data/d8_raster_streams_6ha/ /data/d8_vector_streams_6ha/ 60000
+
+
+## Extract streams 10 ha
+    python3 /code/extract_streams.py /temp/ /data/d8_flow_accumulation/ /data/d8_flow_pointer/ /data/d8_raster_streams_10ha/ /data/d8_vector_streams_10ha/ 100000
 
 
 # Contact
