@@ -5,12 +5,11 @@ from tqdm import tqdm
 import utils.clip
 import utils.vrt_ditches
 
-    
+# time python3 code/split_ditches_by_isobasins.py /temp/ /data/temp_clip/dem_tiles/ data/temp_clip/dem_05m.vrt /data/temp_clip/avr/ /data/temp_clip/dem_clipped/ -32768    
 def main(tempdir, tilepath, vrtpath, isobasindir, clipdir, nodata): 
     
     print('build vrt')
     #utils.vrt_ditches.vrt(tilepath, vrtpath)
-
 
     print('clip raster to isobasin outlines')
     pathtoshapefiles = isobasindir + '/*.shp'  
