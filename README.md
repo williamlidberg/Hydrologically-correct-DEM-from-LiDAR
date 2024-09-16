@@ -65,13 +65,8 @@ Navigate to the dockerfile and build container. In my case this was done like th
     cd /mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR/
     docker build -t dem .
 
-This is an example on how to run the container in interactive mode: 
-
-
-    docker run -it  -v /mnt/GIS/hydrologically_correct_dem_1m:/data -v /mnt/Extension_100TB/national_datasets:/national -v /mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR:/code -v /mnt/ramdisk:/temp dem:latest
     
 # Run pre-processing
-The entire process from raw data to hydrologically correct DEM can be run with the [batch file](Master.sh). Just store the data in the correct directories and update the mount paths in the [batch file](Master.sh).to make it work on your system. Run the batchscript by navigating to its directory and type ./Master.sh The completly pre-processed DEM files will be saved in /data/preprocessed/
 
 
 This is an example on how to run the container in interactive mode: 
@@ -88,8 +83,9 @@ The raster data **DEM** and **ditches** were stored as 2.5 km tiles so they were
 Roads, railroads and streams from the swedish property map were clipped with isobasins using the script [split_vector_by_isobasins.py](split_vector_by_isobasins.py) while culverts were stored as geopackage and were instead clipped using [split_geopackage_by_isobasins.py](split_geopackage_by_isobasins.py)
 
 ## Clip AI-predicted culverts by isobasins
-docker run -it --rm -v /mnt/qnap2/william/projects/hydroDEM/$:/data -v /mnt/qnap2/william/projects/culverts/data/inference/sweden/:/culverts -v /mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR:/code dem:latest
-python code/clipShapeDirByIsobasins.py /data/split/ /culverts/vector/ /data/clipvector/DeepBreach/
+    docker run -it --rm -v /mnt/qnap2/william/projects/hydroDEM/$:/data -v /mnt/qnap2/william/projects/culverts/data/inference/sweden/:/culverts -v /mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR:/code dem:latest
+        
+    python code/clipShapeDirByIsobasins.py /data/split/ /culverts/vector/ /data/clipvector/DeepBreach/
 
 
 
@@ -104,7 +100,9 @@ The pre-processing is done to create a hydrologically compatible DEM and was don
     4. Completly flat areas such as lakes were given a slope of 0.001 degrees
     5. All remaining depressions/sinks were resolved by an agressive breaching approach
 
+Script
 
+    python3 /code/preprocess.py /temp/ /data/clipraster/dem_test/ /data/clipraster/ditches/ /data/clipVector/streams/ /data/clipVector/roads_rail/ /data/clipVector/culverts_line/ /data/clipVector/deepBreach/ /data/HydrologicallyCorrectDEM/
 
 
 # Flow pointer and Flow accumulation
