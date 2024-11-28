@@ -1,23 +1,23 @@
 import os
 import whitebox
 import argparse
-from tqdm import tqdm
+
 wbt = whitebox.WhiteboxTools()
 wbt.set_verbose_mode(False)
 
 
 def main(breached_dir, pointer_dir, accumulation_dir):
-    for watershed in tqdm(os.listdir(breached_dir)):
+    for watershed in os.listdir(breached_dir):
         if watershed.endswith('.tif'):
             wbt.d8_pointer(
-                dem = breached_dir + watershed, 
-                output = pointer_dir + watershed, 
-                esri_pntr=False
+            dem = os.path.join(breached_dir, watershed), 
+            output = os.path.join(pointer_dir, watershed), 
+            esri_pntr=False
             )
 
             wbt.d8_flow_accumulation(
-            i = pointer_dir + watershed, 
-            output = accumulation_dir + watershed, 
+            i = os.path.join(pointer_dir, watershed), 
+            output = os.path.join(accumulation_dir, watershed), 
             out_type='catchment area', 
             log=False, 
             clip=False, 

@@ -106,8 +106,13 @@ Script
 
 
 # Flow pointer and Flow accumulation
-    python3 /code/flow_accumulation.py /data/preprocessed/ /data/d8_flow_pointer/ /data/d8_flow_accumulation/
+    docker run -it --rm -v /mnt/qnap2/william/projects/hydroDEM/:/data -v /mnt/qnap3/william/dem/:/dataOutput/ -v /mnt/qnap2/william/projects/culverts/data/inference/sweden/:/culverts -v /mnt/Extension_100TB/William/GitHub/Hydrologically-correct-DEM-from-LiDAR:/code dem:latest
 
+
+    python3 /code/flow_accumulation.py /dataOutput/HydrologicallyCorrectDEM/ /dataOutput/D8FlowPointer/ /dataOutput/D8FlowAccumulation/
+
+
+ 
 # Streams
 Streams are extracted from flow accumulation rasters based on the hydrologicall compatible DEM. The flow accumulation algorithm accepts both a DEM or flow pointer grid as input. Since the flow pointer grid is usefull for many other tasks it will be extracted along side the flow accumulation. The script "flow_accumulation.py" takes the pre-processed DEM as input and will output both flow pointer and flow accumulation rasters
 
